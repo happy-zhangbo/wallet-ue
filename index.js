@@ -11,20 +11,7 @@ const app = express()
 const port = 3000
 
 // Create connector
-const walletConnector = new NodeWalletConnect(
-    {
-        // Required
-        bridge: "https://bridge.walletconnect.org",
-        // Required
-        clientMeta: {
-            description: "WalletConnect Developer App",
-            url: "https://walletconnect.org",
-            icons: ["https://walletconnect.org/walletconnect-logo.png"],
-            name: "WalletConnect",
-        },
-    }
-);
-
+let walletConnector;
 let web3;
 
 let deviceMap = {};
@@ -36,6 +23,20 @@ app.get('/', (req, res) => {
 
 app.post('/connect',(req, res) => {
     const body = req.body;
+
+    walletConnector = new NodeWalletConnect(
+        {
+            // Required
+            bridge: "https://bridge.walletconnect.org",
+            // Required
+            clientMeta: {
+                description: "WalletConnect Developer App",
+                url: "https://walletconnect.org",
+                icons: ["https://walletconnect.org/walletconnect-logo.png"],
+                name: "WalletConnect",
+            },
+        }
+    );
     // Check if connection is already established
     if (!walletConnector.connected) {
         // create new session
