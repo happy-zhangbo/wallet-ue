@@ -56,3 +56,21 @@ The interface can be viewed and used through Postman.
 
 [![Run in Postman](https://run.pstmn.io/button.svg)](https://app.getpostman.com/run-collection/14909165-e71eee17-9f30-41eb-b1f9-913bfef546d7?action=collection%2Ffork&collection-url=entityId%3D14909165-e71eee17-9f30-41eb-b1f9-913bfef546d7%26entityType%3Dcollection%26workspaceId%3Dc9137c59-d8cc-44c5-8a87-0dc7eaf8dec1)
 
+# Update Log
+
+### 20220525
+
+Add winstonLogger Log frame
+
+Add device_Id duplicate verification
+
+Add check transaction results based on ticketId
+
+Add signature and verify signature function
+
+Add Query Data
+
+Update Transaction Return to content
+
+Update Express for Modularity
+
