@@ -1,25 +1,16 @@
 const express = require('express');
-const bodyParser = require('body-parser');
-const {default: NodeWalletConnect} = require("@walletconnect/client");
+
+const { default: NodeWalletConnect } = require("@walletconnect/client");
 const Web3 = require("web3");
 const crypto = require("crypto");
 const Web3EthAbi = require("web3-eth-abi");
-const {v4: uuidv4} = require("uuid");
+const { v4: uuidv4 } = require("uuid");
 const winlogger = require("../log/winstonLogger");
 
 // Create connector
-let connectMap = {};
-let deviceMap = {};
-let abiMap = {};
-let resultMap = {};
+let { connectMap, deviceMap, abiMap, resultMap } = require("./global");
 
 const api = express.Router();
-api.use(bodyParser())
-
-api.get('/ping', (req, res) => {
-    res.send('pone!')
-});
-
 api.post('/connect',(req, res) => {
     const body = req.body;
     if(!body["device_id"]){
@@ -42,7 +33,6 @@ api.post('/connect',(req, res) => {
             },
         }
     );
-    console.log(walletConnector);
     // Check if connection is already established
     if (!walletConnector.connected) {
         // create new session
@@ -96,7 +86,6 @@ api.post("/abi",(req,res) => {
     res.json({abi: hash});
 })
 
-
 api.post('/send/transaction', (req, res) => {
     const body = req.body;
     const device = deviceMap[body["device_id"]];
@@ -126,7 +115,7 @@ api.post('/send/transaction', (req, res) => {
         // nonce: "0x0114", // Optional
     };
 
-// Send transaction
+    // Send transaction
     walletConnector
         .sendTransaction(tx)
         .then((result) => {
@@ -181,7 +170,7 @@ api.post('/result',(req, res) => {
     res.json(ticket);
 })
 
-api.post('/call/method', (req, res) => {
+api.post('/call/method', async (req, res) => {
     const body = req.body;
     const { web3 } = connectMap[body["device_id"]]
     const abi = abiMap[body["abi_hash"]];
@@ -203,9 +192,8 @@ api.post('/call/method', (req, res) => {
         })
         abi_hash += Web3EthAbi.encodeParameters(inputs,JSON.parse(body["args"])).substring(2)
     }
-
     // Send Custom Request
-    web3.eth.call({
+    await web3.eth.call({
         to: body["contract_address"],
         data: abi_hash
     }).then(result => {
@@ -256,14 +244,13 @@ api.post("/verify/message",(req,res) => {
     const device = deviceMap[body["device_id"]];
     const { web3 } = connectMap[body["device_id"]];
 
-    var address = web3.eth.accounts.recover(body["message"], body["signature"]);
+    let address = web3.eth.accounts.recover(body["message"], body["signature"]);
     if(address == device.accounts[0]){
         res.json({result: true});
     }else{
         res.json({result: false});
     }
 })
-
 
 api.get("/getConnectAccount",(req,res) => {
     res.json(deviceMap);
@@ -275,6 +262,10 @@ api.get("/getAbis",(req,res) => {
 
 api.get("/getTickets",(req,res) => {
     res.json(resultMap);
+});
+
+api.get('/ping', (req, res) => {
+    res.send('pone!')
 });
 
 module.exports = api;

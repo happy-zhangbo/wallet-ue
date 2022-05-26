@@ -1,4 +1,5 @@
 const express = require('express');
+const bodyParser = require('body-parser');
 const winston = require('winston'),
     expressWinston = require('express-winston');
 const {format} = require("winston");
@@ -6,6 +7,7 @@ const {format} = require("winston");
 const app = express()
 const port = 3000
 
+app.use(bodyParser())
 app.use(expressWinston.logger({
     transports: [
         new winston.transports.Console({
@@ -34,6 +36,7 @@ app.use(expressWinston.logger({
 
 app.use('/', require('./controllet/wallet'));
 
+app.use('/nft', require('./controllet/nft'));
 
 // // 错误请求的日志
 // app.use(expressWinston.errorLogger({
