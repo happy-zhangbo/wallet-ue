@@ -438,6 +438,7 @@ IERC721Enumerable
             }
         }
 
+
         emit Transfer(from, to, tokenId);
         _afterTokenTransfers(from, to, tokenId, 1);
     }
