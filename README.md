@@ -58,6 +58,12 @@ The interface can be viewed and used through Postman.
 
 # Update Log
 
+### 20220527
+
+Fix the problem of address matching failure when getting TokenID
+
+Add the ERC721 contract unrestricted mint function
+
 ### 20220526
 
 ADD ERC721A contract
