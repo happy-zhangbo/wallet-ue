@@ -20,10 +20,10 @@ api.post("/getTokenByAddress",async (req, res) => {
         result.forEach(item => {
             const returnValues = item["returnValues"];
             let tokenID = returnValues["tokenId"];
-            if(returnValues["to"].toLowerCase() == device.accounts[0].toLowerCase()){
+            if(returnValues["to"].toLowerCase() === device.accounts[0].toLowerCase()){
                 tokenIds.push(tokenID);
             }
-            if(returnValues["from"].toLowerCase() == device.accounts[0].toLowerCase()){
+            if(returnValues["from"].toLowerCase() === device.accounts[0].toLowerCase()){
                 tokenIds.map((val, i) => {
                     if(val === tokenID){
                         tokenIds.splice(i, 1);
