@@ -24,6 +24,10 @@ contract StorageERC721A is Ownable, ERC721A, ReentrancyGuard {
         _safeMint(msg.sender, quantity);
     }
 
+    function mint(uint256 quantity) external {
+        _safeMint(msg.sender, quantity);
+    }
+
     // // metadata URI
     string private _baseTokenURI;
 
