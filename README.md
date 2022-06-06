@@ -60,6 +60,10 @@ The interface can be viewed and used through Postman.
 
 ### 20220527
 
+Fix the call error due to function overloading in the contract
+
+### 20220527
+
 Fix the problem of address matching failure when getting TokenID
 
 Add the ERC721 contract unrestricted mint function
