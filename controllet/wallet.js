@@ -92,9 +92,12 @@ api.post('/send/transaction', (req, res) => {
     const { walletConnector, web3 } = connectMap[body["device_id"]]
     const abi = abiMap[body["abi_hash"]];
     let data = {};
+    let args = JSON.parse(body["args"]);
     abi.forEach(func => {
         if(func.name === body["method"]){
-            data = func;
+            if(args.length == func["inputs"].length) {
+                data = func;
+            }
         }
     })
     let inputs = [];
@@ -102,7 +105,7 @@ api.post('/send/transaction', (req, res) => {
         inputs.push(param.type);
     })
     let abi_hash = Web3EthAbi.encodeFunctionSignature(data);
-    abi_hash += Web3EthAbi.encodeParameters(inputs,JSON.parse(body["args"])).substring(2)
+    abi_hash += Web3EthAbi.encodeParameters(inputs,args).substring(2)
 
     // Draft transaction
     const tx = {

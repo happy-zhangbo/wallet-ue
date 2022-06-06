@@ -1,6 +1,5 @@
-//0x0100000000000000000000000000000000000000000000000000000000000000
+var data = {
+    args: "[\"0xe09F325F8D3Be99d9e3c8Ed258BA1b3403017985\",\"0xaE276007C9C367b04e8Ec49CdD3a7eE5Ac7d4B6C\",\"1\",\"\"]"
+}
 
-const Web3EthAbi = require("web3-eth-abi");
-
-let decodeParameters = Web3EthAbi.decodeParameter("uint","0100000000000000000000000000000000000000000000000000000000000000");
-console.log(decodeParameters);
+console.log(JSON.parse(data.args));
