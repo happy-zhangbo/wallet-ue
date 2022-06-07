@@ -1,5 +1,17 @@
-var data = {
-    args: "[\"0xe09F325F8D3Be99d9e3c8Ed258BA1b3403017985\",\"0xaE276007C9C367b04e8Ec49CdD3a7eE5Ac7d4B6C\",\"1\",\"\"]"
+var array = ["1","2","3","4","5","6"]
+let a;
+try{
+    array.forEach(item => {
+        if(item === "5"){
+            a = item
+
+        }
+        console.log(item);
+    })
+}catch (e){
+    if(e.message != "End") throw e;
 }
 
-console.log(JSON.parse(data.args));
+
+console.log("SUccess");
+console.log(a);

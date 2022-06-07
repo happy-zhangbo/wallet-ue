@@ -58,7 +58,11 @@ The interface can be viewed and used through Postman.
 
 # Update Log
 
-### 20220527
+### 20220607
+
+Optimize transaction delivery
+
+### 20220606
 
 Fix the call error due to function overloading in the contract
 

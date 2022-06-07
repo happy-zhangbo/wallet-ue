@@ -93,13 +93,20 @@ api.post('/send/transaction', (req, res) => {
     const abi = abiMap[body["abi_hash"]];
     let data = {};
     let args = JSON.parse(body["args"]);
-    abi.forEach(func => {
-        if(func.name === body["method"]){
-            if(args.length == func["inputs"].length) {
-                data = func;
+    try {
+        abi.forEach(func => {
+            if(func.name === body["method"]){
+                if(args.length == func["inputs"].length) {
+                    data = func;
+                    //break
+                    throw new Error("End");
+                }
             }
-        }
-    })
+        })
+    }catch (e){
+        if(e.message != "End") throw e;
+    }
+
     let inputs = [];
     data["inputs"].forEach(param => {
         inputs.push(param.type);
