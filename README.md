@@ -58,6 +58,16 @@ The interface can be viewed and used through Postman.
 
 # Update Log
 
+### 20220608
+
+Add network restriction function, currently open
+
+(Ethereum Mainnet;
+Ethereum Rinkeby;
+Aurora Mainnet;
+Aurora Testnet;)
+
+
 ### 20220607
 
 Optimize transaction delivery

@@ -10,6 +10,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@pinata/sdk": "^1.1.25",
     "@walletconnect/client": "^1.7.8",
     "body-parser": "^1.20.0",
     "crypto": "^1.0.1",

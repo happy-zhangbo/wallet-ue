@@ -54,16 +54,37 @@ api.post('/connect',(req, res) => {
             throw error;
         }
         const { accounts, chainId } = payload.params[0];
-        deviceMap[body["device_id"]] = {
-            accounts: accounts,
-            chainId:chainId,
-        };
-        const web3 = new Web3("https://rinkeby.infura.io/v3/fb000ce8a4944ec0971045125fa286ee");
-        connectMap[body["device_id"]] = {
-            walletConnector: walletConnector,
-            web3: web3
-        };
-        winlogger.info("connect success: accountID: "+accounts[0]+",chainID:"+chainId);
+        let endpoint;
+        switch (chainId) {
+            case 1:
+                endpoint = "https://mainnet.infura.io/v3/a2122abfa9b544dca3df8d951f84029b";
+                break;
+            case 4:
+                endpoint = "https://rinkeby.infura.io/v3/a2122abfa9b544dca3df8d951f84029b";
+                break;
+            case 1313161554:
+                endpoint = "https://mainnet.aurora.dev";
+                break;
+            case 1313161555:
+                endpoint = "https://testnet.aurora.dev";
+                break;
+            default:
+                break;
+        }
+        if(endpoint){
+            deviceMap[body["device_id"]] = {
+                accounts: accounts,
+                chainId:chainId,
+            };
+            const web3 = new Web3("https://rinkeby.infura.io/v3/fb000ce8a4944ec0971045125fa286ee");
+            connectMap[body["device_id"]] = {
+                walletConnector: walletConnector,
+                web3: web3
+            };
+            winlogger.info("connect success: accountID: "+accounts[0]+",chainID:"+chainId);
+        }else{
+            winlogger.warn("The current network is not supported,Please switch the network and scan the code again");
+        }
     });
 })
 
