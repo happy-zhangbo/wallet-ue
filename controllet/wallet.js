@@ -63,10 +63,10 @@ api.post('/connect',(req, res) => {
                 endpoint = "https://rinkeby.infura.io/v3/a2122abfa9b544dca3df8d951f84029b";
                 break;
             case 1313161554:
-                endpoint = "https://mainnet.aurora.dev";
+                endpoint = "wss://mainnet.aurora.dev";
                 break;
             case 1313161555:
-                endpoint = "https://testnet.aurora.dev";
+                endpoint = "wss://testnet.aurora.dev";
                 break;
             default:
                 break;
@@ -76,7 +76,7 @@ api.post('/connect',(req, res) => {
                 accounts: accounts,
                 chainId:chainId,
             };
-            const web3 = new Web3("https://rinkeby.infura.io/v3/fb000ce8a4944ec0971045125fa286ee");
+            const web3 = new Web3(endpoint);
             connectMap[body["device_id"]] = {
                 walletConnector: walletConnector,
                 web3: web3
