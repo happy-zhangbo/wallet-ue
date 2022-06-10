@@ -38,6 +38,8 @@ app.use('/', require('./controllet/wallet'));
 
 app.use('/nft', require('./controllet/nft'));
 
+app.use('/users',require('./controllet/users'));
+
 // // 错误请求的日志
 // app.use(expressWinston.errorLogger({
 //     transports: [

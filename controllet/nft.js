@@ -16,7 +16,7 @@ const storage = multer.diskStorage({
 
 const upload = multer({storage});
 //global
-let { connectMap, deviceMap, abiMap, resultMap } = require("./global");
+let { connectMap, deviceMap, abiMap, resultMap } = require("../common/global");
 
 
 const api = express.Router();

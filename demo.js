@@ -1,7 +1,4 @@
 const Web3 = require("web3");
-let endpoint = "wss://testnet.aurora.dev";
-
-const web3 = new Web3(endpoint);
 let abi = [
     {
         "inputs": [
@@ -886,30 +883,33 @@ let abi = [
         "type": "function"
     }
 ]
-
-const myContract = new web3.eth.Contract(abi, "0xC78B03ab8485E6E7b6f13C2FE88fa4C0ebE34B73");
-myContract.getPastEvents('Transfer', {
-    fromBlock: 0,
-    toBlock: 'latest'
-}).then(result => {
-    console.log(result);
-    let tokenIds = [];
-    result.forEach(item => {
-        const returnValues = item["returnValues"];
-        let tokenID = returnValues["tokenId"];
-        if(returnValues["to"].toLowerCase() === device.accounts[0].toLowerCase()){
-            tokenIds.push(tokenID);
-        }
-        if(returnValues["from"].toLowerCase() === device.accounts[0].toLowerCase()){
-            tokenIds.map((val, i) => {
-                if(val === tokenID){
-                    tokenIds.splice(i, 1);
-                }
-            });
-        }
-    });
-    res.json({
-        result: true,
-        data:tokenIds
-    });
+const Web3EthAbi = require("web3-eth-abi");
+let endpoint = "https://rinkeby.infura.io/v3/a2122abfa9b544dca3df8d951f84029b";
+const web3 = new Web3(endpoint);
+let data;
+abi.forEach(func => {
+    if(func.name === "safeTransferFrom"){
+        data = func;
+    }
 })
+
+let inputs = [];
+data["inputs"].forEach(param => {
+    inputs.push(param.type);
+})
+let args = ["0xaE276007C9C367b04e8Ec49CdD3a7eE5Ac7d4B6C","0xe09F325F8D3Be99d9e3c8Ed258BA1b3403017985","1","0x"];
+let abi_hash = Web3EthAbi.encodeFunctionSignature(data);
+abi_hash += Web3EthAbi.encodeParameters(inputs,args).substring(2)
+const tx = {
+    to: "0x8bB5CbC12505884b3f48A1888DdA02008bB099aA", // Required (for non contract deployments)
+    data: abi_hash, // Required
+    // gasPrice: "0x02540be400", // Optional
+    gas: "20000000", // Optional
+    // value: "0x00", // Optional
+    // nonce: "0x0114", // Optional
+};
+web3.eth.accounts.signTransaction(tx, "0x19410dc9845a816d6c6d883be8cf16cb268787c508a374e24b0238558ebead45").then(res => {
+    web3.eth.sendSignedTransaction(res.rawTransaction).then(console.log);
+});
+
+
