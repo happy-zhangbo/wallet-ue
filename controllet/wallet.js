@@ -85,6 +85,7 @@ api.post('/send/transaction',async (req, res) => {
                     result: false,
                     error: error
                 });
+                throw error;
             });
         }else{
             res.json({
@@ -98,12 +99,24 @@ api.post('/send/transaction',async (req, res) => {
         //     gas:
         // }
         const privateKey = users.findByUid(user["uid"])["proxy_private_key"];
-        const signTx = await web3.eth.accounts.signTransaction(tx, privateKey);
-        const tx = await web3.eth.sendSignedTransaction(res.rawTransaction);
-
-
+        const signTx = await web3.eth.accounts.signTransaction(tx, privateKey).catch((error) => {
+            // Error returned when rejected
+            res.json({
+                result: false,
+                error: error
+            });
+            throw error;
+        });
+        const tx = await web3.eth.sendSignedTransaction(signTx.rawTransaction).catch((error) => {
+            // Error returned when rejected
+            res.json({
+                result: false,
+                error: error
+            });
+            throw error;
+        });
+        result = tx["transactionHash"];
     }
-
     var ticketId = uuidv4();
     resultMap[ticketId] = {
         "tx_hash": result,

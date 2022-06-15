@@ -109,6 +109,7 @@ api.post("/bind",async (req,res) => {
                 chainId: chainId,
                 user: rows
             }
+
         }
     });
     res.json({
