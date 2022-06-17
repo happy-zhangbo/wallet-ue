@@ -1,7 +1,6 @@
 const express = require('express');
 const db = require("../db/database");
 const utils = require("../common/utils");
-const { v4: uuidv4 } = require("uuid");
 const users = require("../services/users");
 
 const walletconnect = require("../common/walletconnect");
@@ -39,16 +38,16 @@ api.post("/login",async (req, res) => {
     switch (method){
         case "metamask":
             const qr = await walletconnect.connect(deviceId,async function(accounts,chainId){
-                let rows = await users.findByAddress(accounts[0]);
-                if(!rows){
-                    rows = await users.insertUser(0,accounts[0],"","")
-                }
-                delete rows["password"];
-                delete rows["proxy_private_key"];
+                // let rows = await users.findByAddress(accounts[0]);
+                // if(!rows){
+                //     rows = await users.insertUser(0,accounts[0],"","")
+                // }
+                // delete rows["password"];
+                // delete rows["proxy_private_key"];
                 deviceMap[deviceId] = {
                     accounts: accounts,
                     chainId: chainId,
-                    user: rows
+                    // user: rows
                 }
             });
             res.json({
@@ -109,7 +108,6 @@ api.post("/bind",async (req,res) => {
                 chainId: chainId,
                 user: rows
             }
-
         }
     });
     res.json({
@@ -118,7 +116,6 @@ api.post("/bind",async (req,res) => {
         uri: qr,
         session: qr.split("?")[0]
     });
-
 })
 
 module.exports = api;

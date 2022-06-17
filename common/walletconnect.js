@@ -1,6 +1,6 @@
 const { default: NodeWalletConnect } = require("@walletconnect/client");
 const winlogger = require("../log/winstonLogger");
-const utils = require("../common/utils");
+const utils = require("./utils");
 //global
 
 module.exports = {

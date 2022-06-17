@@ -1,7 +1,5 @@
 const express = require('express');
 
-const { default: NodeWalletConnect } = require("@walletconnect/client");
-const Web3 = require("web3");
 const crypto = require("crypto");
 const Web3EthAbi = require("web3-eth-abi");
 const { v4: uuidv4 } = require("uuid");
