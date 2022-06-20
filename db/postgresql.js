@@ -1,10 +1,8 @@
 const {Client} = require('pg')
+const connectionString = 'postgresql://postgres:123123@127.0.0.1:5432/blockscout'
+
 const client = new Client({
-    user: 'postgres',
-    host: '192.168.124.177',
-    database: 'blockscout',
-    password: '123123',
-    port: 5432,
+    connectionString,
 })
 client.connect();
 module.exports = client;
