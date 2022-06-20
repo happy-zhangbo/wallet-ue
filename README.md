@@ -58,7 +58,7 @@ The interface can be viewed and used through Postman.
 
 # Update Log
 
-### 20220608
+### 20220620
 
 Adjust the user query token module to local query
 
