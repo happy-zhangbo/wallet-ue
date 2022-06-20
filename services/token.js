@@ -13,7 +13,6 @@ const self = {
         const res = await client.query(sql,[address, contractAddress]).catch(err => {
             throw err;
         });
-        await client.end();
         return res.rows
 
     }
