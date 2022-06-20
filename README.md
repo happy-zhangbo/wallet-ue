@@ -60,6 +60,18 @@ The interface can be viewed and used through Postman.
 
 ### 20220608
 
+Adjust the user query token module to local query
+
+Increase API calls for vault
+
+Add IPFs storage and reading functions
+
+Adjust directory schema
+
+Contract adds updatable metadata
+
+### 20220608
+
 Add network restriction function, currently open
 
 (Ethereum Mainnet;
