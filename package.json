@@ -20,6 +20,7 @@
     "multer": "^1.4.5-lts.1",
     "node-abort-controller": "^3.0.1",
     "node-vault": "^0.9.22",
+    "pg": "^8.7.3",
     "sqlite3": "^5.0.8",
     "tslib": "^2.4.0",
     "uint8arrays": "^3.0.0",

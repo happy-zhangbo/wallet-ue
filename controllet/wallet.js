@@ -34,7 +34,6 @@ api.post('/send/transaction',async (req, res) => {
     const device = deviceMap[body["device_id"]];
     const { walletConnector, web3 } = connectMap[body["device_id"]]
     const abi = abiMap[body["abi_hash"]];
-    const user = device["user"];
     let data = {};
     let args = JSON.parse(body["args"]);
     try {
@@ -60,6 +59,7 @@ api.post('/send/transaction',async (req, res) => {
 
     // Draft transaction
     const tx = {
+        from: device.accounts[0], // Required
         to: body["contract_address"], // Required (for non contract deployments)
         data: abi_hash, // Required
         // gasPrice: "0x02540be400", // Optional
@@ -67,55 +67,28 @@ api.post('/send/transaction',async (req, res) => {
         // value: "0x00", // Optional
         // nonce: "0x0114", // Optional
     };
-
     //proxy_status == 0 use master
     //proxy_status == 1 use proxy
-    let result;
-    if(user["proxy_status"] == 0){
-        if(walletConnector){
-            tx: {
-                from: device.accounts[0] // Required
-            }
-            // Send transaction
-            result = await walletConnector.sendTransaction(tx).catch((error) => {
-                // Error returned when rejected
-                res.json({
-                    result: false,
-                    error: error
-                });
-                throw error;
-            });
-        }else{
+    console.log(tx);
+    let result = "";
+    if(walletConnector){
+        // Send transaction
+        result = await walletConnector.sendTransaction(tx).catch((error) => {
+            // Error returned when rejected
             res.json({
                 result: false,
-                error: "Please use your wallet to scan the code to login"
+                error: error
             });
-            return;
-        }
+            throw error;
+        });
     }else{
-        // tx: {
-        //     gas:
-        // }
-        const privateKey = users.findByUid(user["uid"])["proxy_private_key"];
-        const signTx = await web3.eth.accounts.signTransaction(tx, privateKey).catch((error) => {
-            // Error returned when rejected
-            res.json({
-                result: false,
-                error: error
-            });
-            throw error;
+        res.json({
+            result: false,
+            error: "Please use your wallet to scan the code to login"
         });
-        const tx = await web3.eth.sendSignedTransaction(signTx.rawTransaction).catch((error) => {
-            // Error returned when rejected
-            res.json({
-                result: false,
-                error: error
-            });
-            throw error;
-        });
-        result = tx["transactionHash"];
+        return;
     }
-    var ticketId = uuidv4();
+    let ticketId = uuidv4();
     resultMap[ticketId] = {
         "tx_hash": result,
         code: 0,
@@ -133,10 +106,11 @@ api.post('/send/transaction',async (req, res) => {
         };
         timer= setTimeout(inter, wait);
     }
+    // let count = 0;
     interval(async() => {
         const receipt = await web3.eth.getTransactionReceipt(result);
         if(receipt && receipt["status"]){
-            console.log("tx success");
+            console.log("TX Success");
             resultMap[ticketId].code = 1;
             resultMap[ticketId].status = "success";
             resultMap[ticketId].data = receipt;
@@ -146,58 +120,15 @@ api.post('/send/transaction',async (req, res) => {
             }
         }else{
             winlogger.info("Getting the results of the uplink: "+result);
+            // if(count > 8){
+            //     winlogger.info("TX Error");
+            //     clearTimeout(timer);
+            //     timer = null;
+            // }else{
+            //     count = count + 1;
+            // }
         }
     }, 2000);
-
-
-
-    // Send transaction
-    walletConnector
-        .sendTransaction(tx)
-        .then((result) => {
-            // Returns transaction id (hash)
-
-            var ticketId = uuidv4();
-            resultMap[ticketId] = {
-                "tx_hash": result,
-                code: 0,
-                status: "wait",
-            }
-            res.json({
-                result: true,
-                ticket: ticketId
-            });
-            let timer = null
-            function interval(func, wait){
-                let inter = function(){
-                    func.call(null);
-                    timer=setTimeout(inter, wait);
-                };
-                timer= setTimeout(inter, wait);
-            }
-            interval(async() => {
-                const receipt = await web3.eth.getTransactionReceipt(result);
-                if(receipt && receipt["status"]){
-                    console.log("tx success");
-                    resultMap[ticketId].code = 1;
-                    resultMap[ticketId].status = "success";
-                    resultMap[ticketId].data = receipt;
-                    if (timer) {
-                        clearTimeout(timer);
-                        timer = null;
-                    }
-                }else{
-                    winlogger.info("Getting the results of the uplink: "+result);
-                }
-            }, 2000);
-        })
-        .catch((error) => {
-            // Error returned when rejected
-            res.json({
-                result: false,
-                error: error
-            });
-        });
 })
 
 api.post('/result',(req, res) => {

@@ -8,23 +8,6 @@ let { deviceMap } = require("../common/global");
 
 const api = express.Router();
 
-api.post("/register",async (req, res) => {
-    const body = req.body;
-    const rows = await users.findByEmail(body["email"]);
-    console.log(rows);
-    if(!rows){
-        await users.insertUser(1,"", body["email"], body["password"]);
-        res.json({
-            result: true
-        });
-    }else{
-        res.json({
-            result: false,
-            error: "Email already exists!"
-        });
-    }
-});
-
 api.post("/login",async (req, res) => {
     const body = req.body;
     if(!body["device_id"]){

@@ -24,6 +24,9 @@ module.exports = {
             case 1313161555:
                 endpoint = "https://testnet.aurora.dev";
                 break;
+            case 1008:
+                endpoint = "ws://www.blackwarrior.vip:9944/";
+                break;
             default:
                 break;
         }
