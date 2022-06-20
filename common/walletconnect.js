@@ -12,10 +12,10 @@ module.exports = {
                 bridge: "https://bridge.walletconnect.org",
                 // Required
                 clientMeta: {
-                    description: "WalletConnect Developer App",
+                    description: "Black Warrior App",
                     url: "https://walletconnect.org",
                     icons: ["https://walletconnect.org/walletconnect-logo.png"],
-                    name: "WalletConnect",
+                    name: "Black Warrior",
                 }
             }
         );
