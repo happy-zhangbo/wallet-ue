@@ -4,7 +4,6 @@ const crypto = require("crypto");
 const Web3EthAbi = require("web3-eth-abi");
 const { v4: uuidv4 } = require("uuid");
 const winlogger = require("../log/winstonLogger");
-const users = require("../services/users");
 
 // Create connector
 let { connectMap, deviceMap, abiMap, resultMap } = require("../common/global");

@@ -1,7 +1,5 @@
 const express = require('express');
-const db = require("../db/database");
 const utils = require("../common/utils");
-const users = require("../services/users");
 
 const walletconnect = require("../common/walletconnect");
 let { deviceMap } = require("../common/global");
