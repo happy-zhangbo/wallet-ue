@@ -58,6 +58,18 @@ The interface can be viewed and used through Postman.
 
 # Update Log
 
+### 20220624
+
+Add agent factory contract to query agent account
+
+Add query for proxy account NFT
+
+Add walletless user login interface
+
+Wrapping part of the sending transaction function
+
+Add Vault for storing official private keys
+
 ### 20220620
 
 Adjust the user query token module to local query
