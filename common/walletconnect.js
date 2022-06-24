@@ -2,8 +2,12 @@ const { default: NodeWalletConnect } = require("@walletconnect/client");
 const winlogger = require("../log/winstonLogger");
 const utils = require("./utils");
 //global
+const { connectMap, abiMap} = require("./global");
+const { read } = require("./vault");
+const constants = require("./constant");
+const Web3EthAbi = require("web3-eth-abi");
 
-module.exports = {
+const self = {
     connect: async (deviceId,callback)=> {
         let walletConnector;
         walletConnector = new NodeWalletConnect(
@@ -41,5 +45,52 @@ module.exports = {
             }
         });
         return uri;
+    },
+    async getProxyAddress(salt, deviceId){
+        const { web3 } = connectMap[deviceId]
+        const abi = constants.factoryABI;
+        const { abiHash, data } = utils.encodeParamsABI(abi,[salt],"calculation");
+
+        let outputs = [];
+        data["outputs"].forEach(param => {
+            outputs.push(param.type);
+        })
+        const result = await self.call(outputs, abiHash,constants.factoryAddress, web3).catch(error => {
+            return Promise.reject(error);
+        });
+        return result["0"];
+    },
+    sendTXWallet: async (tx, walletConnector) => {
+        const result = await walletConnector.sendTransaction(tx).catch((error) => {
+            // Error returned when rejected
+            return Promise.reject(error);
+        });
+        return result;
+    },
+    sendTXOfficial: async(tx, web3) => {
+        const officialAccount = await read(constants["officialPath"]);
+        tx["from"] = officialAccount["address"];
+        const gas = await web3.eth.estimateGas(tx).catch(error => {
+            return Promise.reject(error);
+        });
+        tx["gas"] = gas;
+        const sign = await web3.eth.accounts.signTransaction(tx, officialAccount["privateKey"]).catch(error =>{
+            return Promise.reject(error);
+        })
+        const result = await web3.eth.sendSignedTransaction(sign.rawTransaction).catch(error =>{
+            return Promise.reject(error);
+        })
+        return result["transactionHash"];
+    },
+    call: async (outputs ,abi_hash, contractAddress,web3) => {
+        const result = await web3.eth.call({
+            to: contractAddress,
+            data: abi_hash
+        }).catch(error => {
+            return Promise.reject(error);
+        });
+        let decodeParameters = Web3EthAbi.decodeParameters(outputs,result);
+        return decodeParameters;
     }
 }
+module.exports = self;

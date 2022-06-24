@@ -4,6 +4,10 @@ const crypto = require("crypto");
 const Web3EthAbi = require("web3-eth-abi");
 const { v4: uuidv4 } = require("uuid");
 const winlogger = require("../log/winstonLogger");
+const utils = require("../common/utils");
+const walletconnect = require("../common/walletconnect");
+const {constants} = require("../common/constant");
+
 
 // Create connector
 let { connectMap, deviceMap, abiMap, resultMap } = require("../common/global");
@@ -18,8 +22,7 @@ api.post("/wallet/info",(req,res) => {
     }else{
         res.json({result: false});
     }
-
-})
+});
 
 api.post("/abi",(req,res) => {
     const body = req.body;
@@ -30,49 +33,25 @@ api.post("/abi",(req,res) => {
 
 api.post('/send/transaction',async (req, res) => {
     const body = req.body;
-    const device = deviceMap[body["device_id"]];
-    const { walletConnector, web3 } = connectMap[body["device_id"]]
+    const deviceID = body["device_id"];
+    const device = deviceMap[deviceID];
+    const { walletConnector, web3 } = connectMap[deviceID];
     const abi = abiMap[body["abi_hash"]];
-    let data = {};
-    let args = JSON.parse(body["args"]);
-    try {
-        abi.forEach(func => {
-            if(func.name === body["method"]){
-                if(args.length == func["inputs"].length) {
-                    data = func;
-                    //break
-                    throw new Error("End");
-                }
-            }
-        })
-    }catch (e){
-        if(e.message != "End") throw e;
-    }
 
-    let inputs = [];
-    data["inputs"].forEach(param => {
-        inputs.push(param.type);
-    })
-    let abi_hash = Web3EthAbi.encodeFunctionSignature(data);
-    abi_hash += Web3EthAbi.encodeParameters(inputs,args).substring(2)
+    let { abiHash } = utils.encodeParamsABI(abi,JSON.parse(body["args"]),body["method"])
 
     // Draft transaction
-    const tx = {
-        from: device.accounts[0], // Required
+    let tx = {
         to: body["contract_address"], // Required (for non contract deployments)
-        data: abi_hash, // Required
+        data: abiHash, // Required
         // gasPrice: "0x02540be400", // Optional
         // gas: "0x9c40", // Optional
         // value: "0x00", // Optional
         // nonce: "0x0114", // Optional
     };
-    //proxy_status == 0 use master
-    //proxy_status == 1 use proxy
-    console.log(tx);
-    let result = "";
-    if(walletConnector){
-        // Send transaction
-        result = await walletConnector.sendTransaction(tx).catch((error) => {
+    let result;
+    if(device["isProxy"]){
+        result = await walletconnect.sendTXOfficial(tx,web3).catch((error) => {
             // Error returned when rejected
             res.json({
                 result: false,
@@ -81,11 +60,16 @@ api.post('/send/transaction',async (req, res) => {
             throw error;
         });
     }else{
-        res.json({
-            result: false,
-            error: "Please use your wallet to scan the code to login"
+        tx["from"] = device.accounts[0]
+        result = await walletconnect.sendTXWallet(tx, walletConnector).catch((error) => {
+            // Error returned when rejected
+            res.json({
+                result: false,
+                error: error
+            });
+            throw error;
         });
-        return;
+
     }
     let ticketId = uuidv4();
     resultMap[ticketId] = {
@@ -97,37 +81,7 @@ api.post('/send/transaction',async (req, res) => {
         result: true,
         ticket: ticketId
     });
-    let timer = null
-    function interval(func, wait){
-        let inter = function(){
-            func.call(null);
-            timer=setTimeout(inter, wait);
-        };
-        timer= setTimeout(inter, wait);
-    }
-    // let count = 0;
-    interval(async() => {
-        const receipt = await web3.eth.getTransactionReceipt(result);
-        if(receipt && receipt["status"]){
-            console.log("TX Success");
-            resultMap[ticketId].code = 1;
-            resultMap[ticketId].status = "success";
-            resultMap[ticketId].data = receipt;
-            if (timer) {
-                clearTimeout(timer);
-                timer = null;
-            }
-        }else{
-            winlogger.info("Getting the results of the uplink: "+result);
-            // if(count > 8){
-            //     winlogger.info("TX Error");
-            //     clearTimeout(timer);
-            //     timer = null;
-            // }else{
-            //     count = count + 1;
-            // }
-        }
-    }, 2000);
+    utils.pollingTxResult(result, ticketId, web3, 0);
 })
 
 api.post('/result',(req, res) => {
@@ -140,37 +94,20 @@ api.post('/call/method', async (req, res) => {
     const body = req.body;
     const { web3 } = connectMap[body["device_id"]]
     const abi = abiMap[body["abi_hash"]];
-    let data = {};
-    abi.forEach(func => {
-        if(func.name === body["method"]){
-            data = func;
-        }
-    })
+    let { abiHash, data} = utils.encodeParamsABI(abi,JSON.parse(body["args"]),body["method"])
+
     let outputs = [];
     data["outputs"].forEach(param => {
         outputs.push(param.type);
     })
-    let abi_hash = Web3EthAbi.encodeFunctionSignature(data);
-    if(data["inputs"] && data["inputs"].length > 0){
-        let inputs = [];
-        data["inputs"].forEach(param => {
-            inputs.push(param.type);
-        })
-        abi_hash += Web3EthAbi.encodeParameters(inputs,JSON.parse(body["args"])).substring(2)
-    }
-    // Send Custom Request
-    await web3.eth.call({
-        to: body["contract_address"],
-        data: abi_hash
-    }).then(result => {
-        let decodeParameters = Web3EthAbi.decodeParameters(outputs,result);
-        res.json(decodeParameters);
-    }).catch(error => {
+    const result = await walletconnect.call(outputs, abiHash, body["contract_address"],web3).catch(error => {
         res.json({
             result: false,
             error: error
         });
+        throw error;
     });
+    res.json(result);
 })
 
 api.post("/sign/message",async (req,res) => {

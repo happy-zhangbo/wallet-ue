@@ -3,6 +3,7 @@ const utils = require("../common/utils");
 
 const walletconnect = require("../common/walletconnect");
 let { deviceMap } = require("../common/global");
+const {error} = require("winston");
 
 const api = express.Router();
 
@@ -19,16 +20,10 @@ api.post("/login",async (req, res) => {
     switch (method){
         case "metamask":
             const qr = await walletconnect.connect(deviceId,async function(accounts,chainId){
-                // let rows = await users.findByAddress(accounts[0]);
-                // if(!rows){
-                //     rows = await users.insertUser(0,accounts[0],"","")
-                // }
-                // delete rows["password"];
-                // delete rows["proxy_private_key"];
                 deviceMap[deviceId] = {
                     accounts: accounts,
                     chainId: chainId,
-                    // user: rows
+                    isProxy: false
                 }
             });
             res.json({
@@ -39,31 +34,53 @@ api.post("/login",async (req, res) => {
             });
             break;
         case "email":
-            //account password
-            const email = body["email"];
-            const password = body["password"];
-            const rows = await users.findByEmailAndPassword(email, password);
-            if(!rows){
-                res.json({
-                    result: false,
-                    error: "Current user not found"
-                });
-            }else{
-                delete rows["password"];
-                delete rows["proxy_private_key"];
-                deviceMap[deviceId] = {
-                    result: true,
-                    user: rows
+            if(utils.getChainURI(1008,null, deviceId)){
+                if(!body["key"]){
+                    res.json({
+                        result: false,
+                        error: "NO KEY"
+                    });
+                    return;
                 }
-                utils.getChainURI(4, {}, deviceId);
-                res.json({
-                    result: true,
-                    user: rows
-                });
+                const salt = utils.numberToUint256(body["key"]);
+                if(body["generate"]){
+                    //计算create2代理合约地址
+                    const result = await walletconnect.getProxyAddress(salt, deviceId).catch(error => {
+                        res.json({
+                            result: false,
+                            error: error
+                        });
+                        throw error;
+                    });
+                    deviceMap[deviceId] = {
+                        proxyAccount: result,
+                        chainId: "1008",
+                        isProxy: true,
+                        key: salt
+                    };
+                    res.json({
+                        result: true,
+                        data: result
+                    });
+                }else{
+                    if(body["proxyAddress"]){
+                        deviceMap[deviceId] = {
+                            proxyAccount: body["proxyAddress"],
+                            chainId: "1008",
+                            key: salt,
+                            isProxy: true
+                        };
+                    }else{
+                        res.json({
+                            result: false,
+                            error: "Please enter the proxy account address"
+                        });
+                        return;
+                    }
+                }
             }
             break;
         default:
-
             break;
     }
 });
@@ -80,15 +97,8 @@ api.post("/bind",async (req,res) => {
     const qr = await walletconnect.connect(deviceId,async function(accounts,chainId){
         let device = deviceMap[deviceId];
         if(device){
-            let user = device.user;
-            let rows = await users.updateDataById(user["uid"],{"master_address": accounts[0]});
-            delete rows["password"];
-            delete rows["proxy_private_key"];
-            deviceMap[deviceId] = {
-                accounts: accounts,
-                chainId: chainId,
-                user: rows
-            }
+            deviceMap[deviceId]["accounts"] = accounts;
+            deviceMap[deviceId]["isProxy"] = false;
         }
     });
     res.json({

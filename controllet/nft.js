@@ -11,16 +11,26 @@ const api = express.Router();
 api.post("/getTokenByAddress",async (req, res) => {
     const body = req.body;
     const device = deviceMap[body["device_id"]];
-    const { web3 } = connectMap[body["device_id"]];
-    const abi = abiMap[body["abi_hash"]];
-    let tokenIds = [];
-    const result = await token.findTokenByAddress(device.accounts[0].substring(2),body["contract_address"].substring(2));
-    result.forEach(item => {
-        tokenIds.push(item["token_id"]);
-    })
+    let tokens = [];
+    if(device.accounts.length > 0){
+        const result = await token.findTokenByAddress(device.accounts[0],body["contract_address"].substring(2));
+        result.forEach(item => {
+            tokens.push(item["token_id"]);
+        })
+    }
+    let tokenProxy = [];
+    if(device.proxyAccount){
+        const result = await token.findTokenByAddress(device.proxyAccount,body["contract_address"].substring(2));
+        result.forEach(item => {
+            tokenProxy.push(item["token_id"]);
+        })
+    }
     res.json({
         result: true,
-        data:tokenIds
+        data:{
+            proxy: tokenProxy,
+            master: tokens
+        }
     });
 });
 
@@ -30,11 +40,7 @@ api.post("/saveMetadata",async (req,res) => {
     console.log(body);
     if(metadata){
         const cid = await ipfs.add(JSON.stringify(metadata)).catch(err => {
-            res.json({
-                result: false,
-                error: err
-            })
-            return;
+            return err;
         });
         res.json({
             result: true,

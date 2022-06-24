@@ -1,7 +1,7 @@
 let options = {
     apiVersion: 'v1', // default
     endpoint: 'http://127.0.0.1:8200', // default
-    token: 'hvs.aBrypEPDggmCfwRBLxmXilwT' // optional client token; can be fetched after valid initialization of the server
+    token: 'hvs.72oKZJbz8EeEqa7QMKn4UvZ4' // optional client token; can be fetched after valid initialization of the server
 };
 
 // get new instance of the client
@@ -20,8 +20,8 @@ module.exports = {
             })
             .catch(console.error);
     },
-    read: async () => {
-        const { data } = await vault.read('accounts/super').catch(console.error);
+    read: async (path) => {
+        const { data } = await vault.read(path).catch(console.error);
         return data;
     }
 }

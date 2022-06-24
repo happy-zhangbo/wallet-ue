@@ -1,8 +1,11 @@
 const ethers = require('ethers')
 const Web3 = require("web3");
-const {connectMap} = require("./global");
+const {connectMap, resultMap} = require("./global");
+const Web3Utils = require('web3-utils');
+const Web3EthAbi = require("web3-eth-abi");
+const winlogger = require("../log/winstonLogger");
 
-module.exports = {
+const self = {
     createWallet: ()=> {
         let wallet = new ethers.Wallet.createRandom()
         let address = wallet.address
@@ -25,7 +28,7 @@ module.exports = {
                 endpoint = "https://testnet.aurora.dev";
                 break;
             case 1008:
-                endpoint = "ws://www.blackwarrior.vip:9944/";
+                endpoint = "https://www.blackwarrior.vip/eth";
                 break;
             default:
                 break;
@@ -41,7 +44,85 @@ module.exports = {
             return false;
         }
     },
-    isStrEmpty: (str) => {
+    buildCreate2Address: (creatorAddress, saltHex, byteCode) => {
+        return `0x${web3.utils.sha3(`0x${[
+            'ff',
+            creatorAddress,
+            saltHex,
+            web3.utils.sha3(byteCode)
+        ].map(x => x.replace(/0x/, ''))
+            .join('')}`).slice(-40)}`.toLowerCase()
+    },
+    numberToUint256: (value) => {
+        const hex = value.toString(16)
+        return `0x${'0'.repeat(64-hex.length)}${hex}`
+    },
+    encodeParam: (dataType, data) => {
+        return Web3EthAbi.encodeParameter(dataType, data)
+    },
+    encodeParamsABI: (abi,args,method) => {
+        console.log(abi);
+        let data = {};
+        try {
+            abi.forEach(func => {
+                if(func.name === method){
+                    if(args.length == func["inputs"].length) {
+                        data = func;
+                        //break
+                        throw new Error("End");
+                    }
+                }
+            })
+        }catch (e){
+            if(e.message != "End") throw e;
+        }
+        console.log(data)
+        let inputs = [];
+        data["inputs"].forEach((param) => {
+            inputs.push(param.type);
+        });
 
+        console.log(args);
+        let abiHash = Web3EthAbi.encodeFunctionSignature(data);
+        abiHash += Web3EthAbi.encodeParameters(inputs,args).substring(2)
+        return { abiHash, data };
+    },
+    pollingTxResult(result, ticketId, web3, frequency){
+        let timer = null
+        function interval(func, wait){
+            let inter = function(){
+                func.call(null);
+                timer=setTimeout(inter, wait);
+            };
+            timer= setTimeout(inter, wait);
+        }
+        let count = 0;
+        interval(async() => {
+            const receipt = await web3.eth.getTransactionReceipt(result).catch(err =>{
+                throw err;
+            });
+            if(receipt && receipt["status"]){
+                console.log("TX Success");
+                resultMap[ticketId].code = 1;
+                resultMap[ticketId].status = "success";
+                resultMap[ticketId].data = receipt;
+                if (timer) {
+                    clearTimeout(timer);
+                    timer = null;
+                }
+            }else{
+                console.info("Getting the results of the uplink: "+result);
+                if(frequency > 0){
+                    if(count > frequency){
+                        winlogger.info("TX Error");
+                        clearTimeout(timer);
+                        timer = null;
+                    }else{
+                        count = count + 1;
+                    }
+                }
+            }
+        }, 2000);
     }
 }
+module.exports = self;
