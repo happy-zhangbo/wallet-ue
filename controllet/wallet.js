@@ -113,7 +113,16 @@ api.post('/call/method', async (req, res) => {
 api.post("/sign/message",async (req,res) => {
     const body = req.body;
     const device = deviceMap[body["device_id"]];
+    if(device["isProxy"]){
+        res.json({
+            result: false,
+            error: "Please create your own wallet and claim it。"
+        });
+        return;
+    }
+
     const { walletConnector, web3 } = connectMap[body["device_id"]]
+
 
     // Draft Message Parameters
     const message = body["message"];
@@ -122,6 +131,7 @@ api.post("/sign/message",async (req,res) => {
         web3.utils.utf8ToHex(message),                                              // Required
         device.accounts[0],                             // Required
     ];
+
     // Sign personal message
     walletConnector
         .signPersonalMessage(msgParams)

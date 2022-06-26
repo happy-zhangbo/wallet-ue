@@ -44,21 +44,9 @@ const self = {
             return false;
         }
     },
-    buildCreate2Address: (creatorAddress, saltHex, byteCode) => {
-        return `0x${web3.utils.sha3(`0x${[
-            'ff',
-            creatorAddress,
-            saltHex,
-            web3.utils.sha3(byteCode)
-        ].map(x => x.replace(/0x/, ''))
-            .join('')}`).slice(-40)}`.toLowerCase()
-    },
     numberToUint256: (value) => {
         const hex = value.toString(16)
         return `0x${'0'.repeat(64-hex.length)}${hex}`
-    },
-    encodeParam: (dataType, data) => {
-        return Web3EthAbi.encodeParameter(dataType, data)
     },
     encodeParamsABI: (abi,args,method) => {
         console.log(abi);
@@ -123,6 +111,10 @@ const self = {
                 }
             }
         }, 2000);
+    },
+    signMetaDataMsg(ipfsHash, tokenId){
+        return Web3Utils.soliditySha3(ipfsHash,tokenId);
     }
+
 }
 module.exports = self;

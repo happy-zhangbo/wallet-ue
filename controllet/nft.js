@@ -1,6 +1,7 @@
 const express = require('express');
 const ipfs = require("../common/ipfs_common");
 const token = require("../services/token");
+const walletconnect = require("../common/walletconnect")
 //global
 let { connectMap, deviceMap, abiMap } = require("../common/global");
 
@@ -33,6 +34,24 @@ api.post("/getTokenByAddress",async (req, res) => {
         }
     });
 });
+
+api.post("/sign/metadata", async (req, res) => {
+    const body = req.body;
+    const ipfsHash = body["ipfs_hash"];
+    const tokenID = body["tokenId"];
+    const { web3 } = connectMap[body["device_id"]]
+
+    const sign = await walletconnect.signMetaDataMsg(ipfsHash, tokenID, web3).catch(err => {
+        res.json({
+            result: false,
+            error: err
+        })
+    });
+    res.json({
+        result: true,
+        data: sign
+    });
+})
 
 api.post("/saveMetadata",async (req,res) => {
     const body = req.body;
