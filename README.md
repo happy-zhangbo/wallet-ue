@@ -58,6 +58,16 @@ The interface can be viewed and used through Postman.
 
 # Update Log
 
+### 20220627
+
+Update Factory Contract Address;
+
+ADD Vault Save Official Account;
+
+Repair NFT query;
+
+Perfect official signature;
+
 ### 20220624
 
 Add agent factory contract to query agent account
