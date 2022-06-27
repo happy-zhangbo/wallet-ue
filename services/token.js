@@ -8,7 +8,7 @@ const self = {
             "        and \n" +
             "        \ttt.token_contract_address_hash = decode($2,'hex')\n" +
             "        AND\n" +
-            "            tt.token_id NOT IN (SELECT token_id FROM token_transfers WHERE from_address_hash = decode($1,'hex'))\n" +
+            "            tt.token_id NOT IN (SELECT token_id FROM token_transfers WHERE from_address_hash = decode($1,'hex') and token_contract_address_hash = decode($2,'hex'))\n" +
             "        ORDER BY block_number DESC"
         const res = await client.query(sql,[address, contractAddress]).catch(err => {
             throw err;

@@ -1,5 +1,5 @@
 const {Client} = require('pg')
-const connectionString = 'postgresql://postgres:123123@127.0.0.1:5432/postgres'
+const connectionString = 'postgresql://postgres:123123@127.0.0.1:5432/blockscout'
 
 const client = new Client({
     connectionString,

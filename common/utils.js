@@ -6,12 +6,6 @@ const Web3EthAbi = require("web3-eth-abi");
 const winlogger = require("../log/winstonLogger");
 
 const self = {
-    createWallet: ()=> {
-        let wallet = new ethers.Wallet.createRandom()
-        let address = wallet.address
-        let privateKey = wallet.privateKey
-        return [address,privateKey];
-    },
     getChainURI: (chainId, walletConnector, deviceId)=> {
         let endpoint;
         switch (chainId) {
@@ -49,7 +43,6 @@ const self = {
         return `0x${'0'.repeat(64-hex.length)}${hex}`
     },
     encodeParamsABI: (abi,args,method) => {
-        console.log(abi);
         let data = {};
         try {
             abi.forEach(func => {
@@ -64,13 +57,13 @@ const self = {
         }catch (e){
             if(e.message != "End") throw e;
         }
-        console.log(data)
+        if(!data){
+            throw new Error("No Method");
+        }
         let inputs = [];
         data["inputs"].forEach((param) => {
             inputs.push(param.type);
         });
-
-        console.log(args);
         let abiHash = Web3EthAbi.encodeFunctionSignature(data);
         abiHash += Web3EthAbi.encodeParameters(inputs,args).substring(2)
         return { abiHash, data };

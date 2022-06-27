@@ -93,11 +93,12 @@ const self = {
         return decodeParameters;
     },
     signMetaDataMsg: async (ipfsHash, tokenId, web3) => {
-        const officialAccount = await read(constants["officialPath"]);
+        const officialAccount = await read(constants["officialPath"]).catch(error => {
+            return Promise.reject(error);
+        });
         const message = utils.signMetaDataMsg(ipfsHash,tokenId);
         const sign = await web3.eth.accounts.sign(message,officialAccount["privateKey"]);
         return sign;
-
     }
 }
 module.exports = self;

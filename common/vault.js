@@ -1,7 +1,7 @@
 let options = {
     apiVersion: 'v1', // default
     endpoint: 'http://127.0.0.1:8200', // default
-    token: 'hvs.72oKZJbz8EeEqa7QMKn4UvZ4' // optional client token; can be fetched after valid initialization of the server
+    token: 'hvs.DxzgWRGqFroUUwwvqJ3C2DBc' // optional client token; can be fetched after valid initialization of the server
 };
 
 // get new instance of the client
