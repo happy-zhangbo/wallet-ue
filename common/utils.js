@@ -1,9 +1,9 @@
-const ethers = require('ethers')
 const Web3 = require("web3");
 const {connectMap, resultMap} = require("./global");
 const Web3Utils = require('web3-utils');
 const Web3EthAbi = require("web3-eth-abi");
 const winlogger = require("../log/winstonLogger");
+const crypto = require('crypto');
 
 const self = {
     getChainURI: (chainId, walletConnector, deviceId)=> {
@@ -39,7 +39,10 @@ const self = {
         }
     },
     numberToUint256: (value) => {
-        const hex = value.toString(16)
+        const md5 = crypto.createHash('md5');
+        const result = md5.update(value).digest('hex');
+        console.log(result);
+        const hex = Web3Utils.utf8ToHex(result).substring(2);
         return `0x${'0'.repeat(64-hex.length)}${hex}`
     },
     encodeParamsABI: (abi,args,method) => {
