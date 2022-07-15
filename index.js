@@ -8,6 +8,21 @@ const app = express()
 const port = 3000
 
 app.use(bodyParser())
+
+
+app.use(function (req,res,next){
+    const body = req.body;
+    if(!body["device_id"]){
+        res.json({
+            result: false,
+            error: "No DeviceID"
+        })
+        return;
+    }else{
+        next();
+    }
+
+})
 app.use(expressWinston.logger({
     transports: [
         new winston.transports.Console({

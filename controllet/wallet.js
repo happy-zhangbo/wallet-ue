@@ -123,7 +123,6 @@ api.post("/sign/message",async (req,res) => {
 
     const { walletConnector, web3 } = connectMap[body["device_id"]]
 
-
     // Draft Message Parameters
     const message = body["message"];
 

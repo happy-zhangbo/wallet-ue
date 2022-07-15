@@ -4,6 +4,7 @@ const Web3Utils = require('web3-utils');
 const Web3EthAbi = require("web3-eth-abi");
 const winlogger = require("../log/winstonLogger");
 const crypto = require('crypto');
+const constants = require("./constant");
 
 const self = {
     getChainURI: (chainId, walletConnector, deviceId)=> {
@@ -24,6 +25,9 @@ const self = {
             case 1008:
                 endpoint = "https://www.blackwarrior.vip/eth";
                 break;
+            case 1281:
+                endpoint = "https://gateway.testnet.octopus.network/barnacle-evm/wj1hhcverunusc35jifki19otd4od1n5";
+                break;
             default:
                 break;
         }
@@ -38,10 +42,18 @@ const self = {
             return false;
         }
     },
+    buildCreate2Address: (creatorAddress, saltHex, byteCode) => {
+        return `0x${Web3Utils.sha3(`0x${[
+            'ff',
+            creatorAddress,
+            saltHex,
+            Web3Utils.sha3(byteCode)
+        ].map(x => x.replace(/0x/, ''))
+            .join('')}`).slice(-40)}`.toLowerCase()
+    },
     numberToUint256: (value) => {
         const md5 = crypto.createHash('md5');
         const result = md5.update(value).digest('hex');
-        console.log(result);
         const hex = Web3Utils.utf8ToHex(result).substring(2);
         return `0x${'0'.repeat(64-hex.length)}${hex}`
     },
@@ -110,6 +122,9 @@ const self = {
     },
     signMetaDataMsg(ipfsHash, tokenId){
         return Web3Utils.soliditySha3(ipfsHash,tokenId);
+    },
+    getProxyAddress(salt){
+        return self.buildCreate2Address(constants.factoryAddress, salt, constants.proxyAccountBytecode);
     }
 
 }

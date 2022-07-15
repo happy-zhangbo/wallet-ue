@@ -3,18 +3,10 @@ const utils = require("../common/utils");
 
 const walletconnect = require("../common/walletconnect");
 let { deviceMap } = require("../common/global");
-const {error} = require("winston");
-
 const api = express.Router();
 
 api.post("/login",async (req, res) => {
     const body = req.body;
-    if(!body["device_id"]){
-        res.json({
-            result: false
-        })
-        return;
-    }
     const deviceId = body["device_id"];
     const method = body["method"];
     switch (method){
@@ -42,42 +34,19 @@ api.post("/login",async (req, res) => {
                     });
                     return;
                 }
+                //计算create2代理合约地址
                 const salt = utils.numberToUint256(body["key"]);
-                if(body["generate"]){
-                    //计算create2代理合约地址
-                    const result = await walletconnect.getProxyAddress(salt, deviceId).catch(error => {
-                        res.json({
-                            result: false,
-                            error: error
-                        });
-                        throw error;
-                    });
-                    deviceMap[deviceId] = {
-                        proxyAccount: result,
-                        chainId: "1008",
-                        isProxy: true,
-                        key: salt
-                    };
-                    res.json({
-                        result: true,
-                        data: result
-                    });
-                }else{
-                    if(body["proxyAddress"]){
-                        deviceMap[deviceId] = {
-                            proxyAccount: body["proxyAddress"],
-                            chainId: "1008",
-                            key: salt,
-                            isProxy: true
-                        };
-                    }else{
-                        res.json({
-                            result: false,
-                            error: "Please enter the proxy account address"
-                        });
-                        return;
-                    }
-                }
+                const proxyAddress = utils.getProxyAddress(salt);
+                deviceMap[deviceId] = {
+                    proxyAccount: proxyAddress,
+                    chainId: "1008",
+                    isProxy: true,
+                    key: salt
+                };
+                res.json({
+                    result: true,
+                    data: proxyAddress
+                });
             }
             break;
         default:
