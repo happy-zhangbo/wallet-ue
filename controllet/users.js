@@ -11,27 +11,28 @@ api.post("/login",async (req, res) => {
     const method = body["method"];
     switch (method){
         case "metamask":
+            const key = body["key"]
             const qr = await walletconnect.connect(deviceId,async function(accounts,chainId){
-                deviceMap[deviceId] = {
+                let device = {
                     accounts: accounts,
                     chainId: chainId,
                     isProxy: false
                 }
+                if(key){
+                    //计算create2代理合约地址
+                    const salt = utils.numberToUint256(key);
+                    const proxyAddress = utils.getProxyAddress(salt);
+                    device["proxyAccount"] = proxyAddress;
+                    device["key"] = salt;
+                }
+                deviceMap[deviceId] = device;
             });
-            res.json({
-                result: true,
-                login: true,
-                uri: qr,
-                session: qr.split("?")[0]
-            });
+            res.json(utils.toReturn(true,qr))
             break;
         case "email":
             if(utils.getChainURI(1008,null, deviceId)){
                 if(!body["key"]){
-                    res.json({
-                        result: false,
-                        error: "NO KEY"
-                    });
+                    res.json(utils.toReturn(false,"NO KEY"))
                     return;
                 }
                 //计算create2代理合约地址
@@ -43,10 +44,7 @@ api.post("/login",async (req, res) => {
                     isProxy: true,
                     key: salt
                 };
-                res.json({
-                    result: true,
-                    data: proxyAddress
-                });
+                res.json(utils.toReturn(true,proxyAddress))
             }
             break;
         default:
@@ -67,15 +65,11 @@ api.post("/bind",async (req,res) => {
         let device = deviceMap[deviceId];
         if(device){
             deviceMap[deviceId]["accounts"] = accounts;
+            deviceMap[deviceId]["chainId"] = chainId;
             deviceMap[deviceId]["isProxy"] = false;
         }
     });
-    res.json({
-        result: true,
-        login: true,
-        uri: qr,
-        session: qr.split("?")[0]
-    });
+    res.json(utils.toReturn(true,qr));
 })
 
 module.exports = api;

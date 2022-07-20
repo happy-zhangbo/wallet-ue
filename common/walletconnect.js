@@ -46,20 +46,6 @@ const self = {
         });
         return uri;
     },
-    async getProxyAddress(salt, deviceId){
-        const { web3 } = connectMap[deviceId]
-        const abi = constants.factoryABI;
-        const { abiHash, data } = utils.encodeParamsABI(abi,[salt],"calculation");
-
-        let outputs = [];
-        data["outputs"].forEach(param => {
-            outputs.push(param.type);
-        })
-        const result = await self.call(outputs, abiHash,constants.factoryAddress, web3).catch(error => {
-            return Promise.reject(error);
-        });
-        return result["0"];
-    },
     sendTXWallet: async (tx, walletConnector) => {
         const result = await walletConnector.sendTransaction(tx).catch((error) => {
             // Error returned when rejected

@@ -1,54 +1,59 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity >=0.7.0 <0.9.0;
 
+import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
-contract ProxyC {
-    function claim(address nftToken,address masterAddress,uint256[] memory tokens) external{
-        IERC721 erc721 = IERC721(nftToken); 
+import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
+contract ProxyAccount is Ownable, IERC721Receiver{
+
+    IERC721 nft;
+    constructor(address nftToken){
+        nft = IERC721(nftToken);
+    }
+
+    function claim(uint256[] memory tokens) external onlyOwner{
+        _claim(msg.sender, tokens);
+    }
+
+    function claim(address masterAddress, uint256[] memory tokens) external onlyOwner{
+        _claim(masterAddress, tokens);
+    }
+
+    function _claim(address masterAddress, uint256[] memory tokens) internal virtual{
         for(uint i = 0; i < tokens.length; i++){
-            erc721.transferFrom(address(this), masterAddress, tokens[i]);
+            nft.transferFrom(address(this), masterAddress, tokens[i]);
         }
-        // selfdestruct(payable(msg.sender));
+    }
+
+    function onERC721Received(address, address, uint256, bytes memory) public virtual override returns (bytes4) {
+        return this.onERC721Received.selector;
     }
 }
 
-interface PINter {
-    function claim(address nftToken, address masterAddress,uint256[] memory tokens) external;
+interface IProxyAccount {
+    function claim(address masterAddress,uint256[] memory tokens) external;
+
+    function transferOwnership(address newOwner) external;
 }
 
-contract Factory {
-    function createDSalted(address nftToken, uint256[] memory tokens,bytes32 salt) external{
-        // This complicated expression just tells you how the address
-        // can be pre-computed. It is just there for illustration.
-        // You actually only need ``new D{salt: salt}(arg)``.
-        // bytes memory bytecode = type(ProxyC).creationCode;
-        bytes memory bytecode = type(ProxyC).creationCode;
-        address newAddr;
-        assembly {
-            let codeSize := mload(bytecode) // get size of init_bytecode
-            newAddr := create2(
-                0, // 0 wei
-                add(bytecode, 32), // the bytecode itself starts at the second slot. The first slot contains array length
-                codeSize, // size of init_code
-                salt // salt from function arguments
-            )
-            if iszero(extcodesize(newAddr)) {
-                revert(0, 0)
-            }
-        }
-        PINter p = PINter(newAddr);
-        p.claim(nftToken, msg.sender, tokens);
+contract ProxyAccountFactory {
+
+    address private nftToken;
+
+    constructor(address _nftToken){
+        nftToken = _nftToken;
     }
 
-    function calculation(bytes32 salt) public view returns(address){
-        bytes memory bytecode = type(ProxyC).creationCode;
-        bytes32 hash = keccak256(
-            abi.encodePacked(
-                bytes1(0xff),
-                address(this),
-                salt,
-                keccak256(bytecode)
-            ));
-        return address(uint160(uint256(hash)));
+    function createDeploySalted(uint256[] memory tokens,bytes32 salt) external{
+        ProxyAccount pa = new ProxyAccount{salt: salt}(nftToken);
+        IProxyAccount ipa = IProxyAccount(address(pa));
+        ipa.claim(msg.sender, tokens);
+        ipa.transferOwnership(msg.sender);
+    }
+
+    // get the ByteCode of the contract DeployWithCreate2
+    function getBytecode() public view returns (bytes memory) {
+        bytes memory bytecode = type(ProxyAccount).creationCode;
+        return abi.encodePacked(bytecode, abi.encode(nftToken));
     }
 }

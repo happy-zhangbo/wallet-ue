@@ -125,6 +125,22 @@ const self = {
     },
     getProxyAddress(salt){
         return self.buildCreate2Address(constants.factoryAddress, salt, constants.proxyAccountBytecode);
+    },
+    toChecksumAddress(address){
+        return Web3Utils.toChecksumAddress(address);
+    },
+    toReturn(result,data){
+        if(result){
+            return {
+                result: true,
+                data: data
+            }
+        }else{
+            return {
+                result: false,
+                error: data
+            }
+        }
     }
 
 }

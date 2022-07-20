@@ -4,25 +4,33 @@ const winston = require('winston'),
     expressWinston = require('express-winston');
 const {format} = require("winston");
 
+const utils = require("./common/utils");
+
+let { deviceMap } = require("./common/global");
+
 const app = express()
 const port = 3000
 
 app.use(bodyParser())
 
-
+//Global Check
 app.use(function (req,res,next){
     const body = req.body;
     if(!body["device_id"]){
-        res.json({
-            result: false,
-            error: "No DeviceID"
-        })
-        return;
+        res.json(utils.toReturn(false,"No DeviceID"));
     }else{
-        next();
+        if(req.path.indexOf("users/login") == 1){
+            next();
+        }else{
+            if(!deviceMap[body["device_id"]]){
+                res.json(utils.toReturn(false,"No Login"));
+            }else{
+                next();
+            }
+        }
     }
-
 })
+
 app.use(expressWinston.logger({
     transports: [
         new winston.transports.Console({

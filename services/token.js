@@ -1,21 +1,43 @@
-const client = require("../db/postgresql");
-
+const { client } = require("../db/graphqls");
+const { gql } = require('graphql-request');
 const self = {
-    async findTokenByAddress(address,contractAddress){
-        const sql = "select * from token_transfers tt \n" +
-            "        WHERE\n" +
-            "            (tt.to_address_hash = decode($1,'hex') OR tt.from_address_hash =  decode($1,'hex')) \n" +
-            "        and \n" +
-            "        \ttt.token_contract_address_hash = decode($2,'hex')\n" +
-            "        AND\n" +
-            "            tt.token_id NOT IN (SELECT token_id FROM token_transfers WHERE from_address_hash = decode($1,'hex') and token_contract_address_hash = decode($2,'hex'))\n" +
-            "        ORDER BY block_number DESC"
-        const res = await client.query(sql,[address, contractAddress]).catch(err => {
-            throw err;
-        });
-        return res.rows
-
+    async findTokenByAddress(address){
+        const query = gql`
+          query {
+            gameItemsTransferEvents(filter: {
+              or: [
+                { from: { equalTo: "${address}" }},
+                { to: { equalTo: "${address}" }}
+              ]
+            }) {
+                nodes {
+                    id
+                    from
+                    to
+                    tokenId
+                }
+            }
+        }`
+        const data = await client.request(query);
+        const resArray = data["gameItemsTransferEvents"]["nodes"]
+        let tokens = [];
+        for (const resArrayElement of resArray) {
+            const to = resArrayElement["to"];
+            const tokenId = resArrayElement["tokenId"]
+            if (to === address) {
+                tokens.push(tokenId)
+            }
+        }
+        for (const resArrayElement of resArray) {
+            const from = resArrayElement["from"];
+            const tokenId = resArrayElement["tokenId"]
+            if (from === address) {
+                tokens= tokens.filter((value, index, arr) => {
+                    return value !== tokenId;
+                });
+            }
+        }
+        return tokens;
     }
 }
-
-module.exports = self
+module.exports = self;

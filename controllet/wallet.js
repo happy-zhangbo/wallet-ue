@@ -1,12 +1,9 @@
 const express = require('express');
 
 const crypto = require("crypto");
-const Web3EthAbi = require("web3-eth-abi");
 const { v4: uuidv4 } = require("uuid");
-const winlogger = require("../log/winstonLogger");
 const utils = require("../common/utils");
 const walletconnect = require("../common/walletconnect");
-const {constants} = require("../common/constant");
 
 
 // Create connector
@@ -17,10 +14,9 @@ api.post("/wallet/info",(req,res) => {
     const body = req.body;
     let deviceMapElement = deviceMap[body["device_id"]];
     if(deviceMapElement){
-        deviceMapElement.result = true;
-        res.json(deviceMapElement);
+        res.json(utils.toReturn(true,deviceMapElement));
     }else{
-        res.json({result: false});
+        res.json(utils.toReturn(false,"No Login"));
     }
 });
 
@@ -28,7 +24,7 @@ api.post("/abi",(req,res) => {
     const body = req.body;
     let hash = crypto.createHash('sha256').update(body.abi).digest('hex');
     abiMap[hash] = JSON.parse(body.abi);
-    res.json({abi: hash});
+    res.json(utils.toReturn(true,hash));
 })
 
 api.post('/send/transaction',async (req, res) => {
@@ -53,20 +49,14 @@ api.post('/send/transaction',async (req, res) => {
     if(device["isProxy"]){
         result = await walletconnect.sendTXOfficial(tx,web3).catch((error) => {
             // Error returned when rejected
-            res.json({
-                result: false,
-                error: error
-            });
+            res.json(utils.toReturn(false,error));
             throw error;
         });
     }else{
         tx["from"] = device.accounts[0]
         result = await walletconnect.sendTXWallet(tx, walletConnector).catch((error) => {
             // Error returned when rejected
-            res.json({
-                result: false,
-                error: error
-            });
+            res.json(utils.toReturn(false,error));
             throw error;
         });
 
@@ -77,17 +67,14 @@ api.post('/send/transaction',async (req, res) => {
         code: 0,
         status: "wait",
     }
-    res.json({
-        result: true,
-        ticket: ticketId
-    });
+    res.json(utils.toReturn(true,ticketId));
     utils.pollingTxResult(result, ticketId, web3, 0);
 })
 
 api.post('/result',(req, res) => {
     const body = req.body;
     const ticket = resultMap[body["ticket"]];
-    res.json(ticket);
+    res.json(utils.toReturn(true,ticket));
 })
 
 api.post('/call/method', async (req, res) => {
@@ -101,23 +88,17 @@ api.post('/call/method', async (req, res) => {
         outputs.push(param.type);
     })
     const result = await walletconnect.call(outputs, abiHash, body["contract_address"],web3).catch(error => {
-        res.json({
-            result: false,
-            error: error
-        });
+        res.json(utils.toReturn(false,false));
         throw error;
     });
-    res.json(result);
+    res.json(utils.toReturn(false, result));
 })
 
 api.post("/sign/message",async (req,res) => {
     const body = req.body;
     const device = deviceMap[body["device_id"]];
     if(device["isProxy"]){
-        res.json({
-            result: false,
-            error: "Please create your own wallet and claim it。"
-        });
+        res.json(utils.toReturn(false, "Please create your own wallet and claim it"));
         return;
     }
 
@@ -136,18 +117,15 @@ api.post("/sign/message",async (req,res) => {
         .signPersonalMessage(msgParams)
         .then((result) => {
             // Returns signature.
-            var ticketId = uuidv4();
             res.json({
                 result: true,
                 signature: result
             });
+            res.json(utils.toReturn(true, result));
         })
         .catch(error => {
             // Error returned when rejected
-            res.json({
-                result: true,
-                error: error
-            });
+            res.json(utils.toReturn(false, error));
         })
 });
 
