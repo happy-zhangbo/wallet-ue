@@ -58,6 +58,16 @@ The interface can be viewed and used through Postman.
 
 # Update Log
 
+### 20220720
+
+Query Token using Graphqls
+
+Add global validation interception and unified return format
+
+Update the way proxy accounts are generated
+
+Update Contracts
+
 ### 20220627
 
 Update Factory Contract Address;
