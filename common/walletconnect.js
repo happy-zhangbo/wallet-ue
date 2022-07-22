@@ -85,6 +85,16 @@ const self = {
         const message = utils.signMetaDataMsg(ipfsHash,tokenId);
         const sign = await web3.eth.accounts.sign(message,officialAccount["privateKey"]);
         return sign;
+    },
+    signInfo712Msg: async (msgParams ,walletConnector) => {
+        // Sign Typed Data
+       const result = await walletConnector
+            .signTypedData(msgParams)
+            .catch((error) => {
+                // Error returned when rejected
+                return Promise.reject(error);
+            });
+       return result;
     }
 }
 module.exports = self;

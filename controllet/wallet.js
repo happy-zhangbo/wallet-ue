@@ -96,38 +96,30 @@ api.post('/call/method', async (req, res) => {
 
 api.post("/sign/message",async (req,res) => {
     const body = req.body;
-    const device = deviceMap[body["device_id"]];
-    if(device["isProxy"]){
-        res.json(utils.toReturn(false, "Please create your own wallet and claim it"));
-        return;
-    }
-
-    const { walletConnector, web3 } = connectMap[body["device_id"]]
-
-    // Draft Message Parameters
-    const message = body["message"];
-
+    const deviceID = body["device_id"];
+    const device = deviceMap[deviceID];
+    const { walletConnector } = connectMap[deviceID];
+    const typeData = Object.assign(body["type_data"]);
     const msgParams = [
-        web3.utils.utf8ToHex(message),                                              // Required
-        device.accounts[0],                             // Required
+        device.accounts[0], // Required
+        JSON.stringify(typeData), // Required
     ];
 
-    // Sign personal message
-    walletConnector
-        .signPersonalMessage(msgParams)
-        .then((result) => {
-            // Returns signature.
-            res.json({
-                result: true,
-                signature: result
-            });
-            res.json(utils.toReturn(true, result));
-        })
-        .catch(error => {
-            // Error returned when rejected
-            res.json(utils.toReturn(false, error));
-        })
-});
+    const result = await walletconnect.signInfo712Msg(msgParams,walletConnector).catch(error => {
+        res.json(utils.toReturn(false, error));
+        throw error;
+    });
+    let sign = result.substring(2, result.length);
+    let hexV = sign.substring(sign.length-2,sign.length)
+    let data = {
+        v: utils.hexToNUmber(`0x${hexV}`),
+        r: sign.substring(0,64),
+        s: sign.substring(64,128),
+        sign: result
+    }
+    res.json(utils.toReturn(true,data));
+})
+
 
 api.post("/verify/message",(req,res) => {
     const body = req.body;

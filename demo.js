@@ -6,7 +6,7 @@ const walletconnect = require("./common/walletconnect");
 const ipfsC = require("./common/ipfs_common");
 const constant = require("./common/constant");
 const token = require("./services/token")
-async function main(){
+async function main() {
     // console.log(await vault.read("official/account"));
     // console.log(utils.signMetaDataMsg("bc", 0));
     // walletconnect.signMetaDataMsg("abccc",1,web3).then(console.log);
@@ -22,7 +22,18 @@ async function main(){
     // console.log(a);
     // 0x88d3675aa6fef851413e8779098f911d8b094b9d
     // 0x3066363465656633663061316338306162626237643030666138313130626231
-    await token.findTokenByAddress(utils.toChecksumAddress("0x470874ff7404eee2dda26f7b1417b8c49bdcbf1b")).then(console.log)
+    // await token.findTokenByAddress(utils.toChecksumAddress("0x470874ff7404eee2dda26f7b1417b8c49bdcbf1b")).then(console.log)
+
+    const result = "0x2a82520f89f96bba04bbd2fc52b3e0ea8e5be140c4df11a2982ac8030ce17ba952432e870071fe23d591d2255183cbf4c27733c432653afa8661d3102538f5371c";
+    let sign = result.substring(2, result.length);
+    let hexV = sign.substring(sign.length-2,sign.length)
+    let data = {
+        v: utils.hexToNUmber(`0x${hexV}`),
+        r: sign.substring(0,64),
+        s: sign.substring(64,128),
+        sign: result
+    }
+    console.log(data);
 }
 
 main()

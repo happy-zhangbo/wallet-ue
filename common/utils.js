@@ -141,6 +141,9 @@ const self = {
                 error: data
             }
         }
+    },
+    hexToNUmber(hex){
+        return Web3Utils.hexToNumber(hex);
     }
 
 }
