@@ -2,7 +2,7 @@ const { default: NodeWalletConnect } = require("@walletconnect/client");
 const winlogger = require("../log/winstonLogger");
 const utils = require("./utils");
 //global
-const { connectMap, abiMap} = require("./global");
+const { connectMap, abiMap, resultMap} = require("./global");
 const { read } = require("./vault");
 const constants = require("./constant");
 const Web3EthAbi = require("web3-eth-abi");
@@ -53,7 +53,7 @@ const self = {
         });
         return result;
     },
-    sendTXOfficial: async(tx, web3) => {
+    sendTXOfficial: async(tx, web3, ticketId) => {
         const officialAccount = await read(constants["officialPath"]);
         tx["from"] = officialAccount["address"];
         const gas = await web3.eth.estimateGas(tx).catch(error => {
@@ -63,10 +63,16 @@ const self = {
         const sign = await web3.eth.accounts.signTransaction(tx, officialAccount["privateKey"]).catch(error =>{
             return Promise.reject(error);
         })
-        const result = await web3.eth.sendSignedTransaction(sign.rawTransaction).catch(error =>{
+        console.log(sign);
+        web3.eth.sendSignedTransaction(sign.rawTransaction).then(result => {
+            resultMap[ticketId].code = 1;
+            resultMap[ticketId].status = "success";
+            resultMap[ticketId].data = result;
+            console.log("TX Success");
+        }).catch(error =>{
             return Promise.reject(error);
         })
-        return result["transactionHash"];
+        return sign["transactionHash"];
     },
     call: async (outputs ,abi_hash, contractAddress,web3) => {
         const result = await web3.eth.call({

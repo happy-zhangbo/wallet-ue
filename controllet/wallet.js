@@ -45,13 +45,20 @@ api.post('/send/transaction',async (req, res) => {
         // value: "0x00", // Optional
         // nonce: "0x0114", // Optional
     };
+    let ticketId = uuidv4();
     let result;
     if(device["isProxy"]){
-        result = await walletconnect.sendTXOfficial(tx,web3).catch((error) => {
+        result = await walletconnect.sendTXOfficial(tx, web3, ticketId).catch((error) => {
             // Error returned when rejected
             res.json(utils.toReturn(false,error));
             throw error;
         });
+        resultMap[ticketId] = {
+            "tx_hash": result,
+            code: 0,
+            status: "wait",
+        }
+        res.json(utils.toReturn(true,ticketId));
     }else{
         tx["from"] = device.accounts[0]
         result = await walletconnect.sendTXWallet(tx, walletConnector).catch((error) => {
@@ -59,16 +66,14 @@ api.post('/send/transaction',async (req, res) => {
             res.json(utils.toReturn(false,error));
             throw error;
         });
-
+        resultMap[ticketId] = {
+            "tx_hash": result,
+            code: 0,
+            status: "wait",
+        }
+        res.json(utils.toReturn(true,ticketId));
+        utils.pollingTxResult(result, ticketId, web3, 0);
     }
-    let ticketId = uuidv4();
-    resultMap[ticketId] = {
-        "tx_hash": result,
-        code: 0,
-        status: "wait",
-    }
-    res.json(utils.toReturn(true,ticketId));
-    utils.pollingTxResult(result, ticketId, web3, 0);
 })
 
 api.post('/result',(req, res) => {
