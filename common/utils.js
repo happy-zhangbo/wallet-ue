@@ -5,6 +5,7 @@ const Web3EthAbi = require("web3-eth-abi");
 const winlogger = require("../log/winstonLogger");
 const crypto = require('crypto');
 const constants = require("./constant");
+const ethers = require("ethers");
 
 const self = {
     getChainURI: (chainId, walletConnector, deviceId)=> {
@@ -120,8 +121,9 @@ const self = {
             }
         }, 2000);
     },
-    signMetaDataMsg(ipfsHash, tokenId){
-        return Web3Utils.soliditySha3(ipfsHash,tokenId);
+    signMetaDataMsg(types,content){
+        let msg = ethers.utils.keccak256(ethers.utils.solidityPack(types,content));
+        return msg;
     },
     getProxyAddress(salt){
         return self.buildCreate2Address(constants.factoryAddress, salt, constants.proxyAccountBytecode);

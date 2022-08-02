@@ -36,11 +36,10 @@ api.post("/getTokenByAddress",async (req, res) => {
 
 api.post("/sign/metadata", async (req, res) => {
     const body = req.body;
-    const ipfsHash = body["ipfs_hash"];
-    const tokenID = body["token_id"];
+    const signData = body["data"];
     const { web3 } = connectMap[body["device_id"]]
 
-    const sign = await walletconnect.signMetaDataMsg(ipfsHash, tokenID, web3).catch(err => {
+    const sign = await walletconnect.signMetaDataMsg(signData, web3).catch(err => {
         res.json(utils.toReturn(false,err));
     });
     res.json(utils.toReturn(true,sign));

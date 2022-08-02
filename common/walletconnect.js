@@ -84,11 +84,16 @@ const self = {
         let decodeParameters = Web3EthAbi.decodeParameters(outputs,result);
         return decodeParameters;
     },
-    signMetaDataMsg: async (ipfsHash, tokenId, web3) => {
+    signMetaDataMsg: async (signData, web3) => {
         const officialAccount = await read(constants["officialPath"]).catch(error => {
             return Promise.reject(error);
         });
-        const message = utils.signMetaDataMsg(ipfsHash,tokenId);
+        let types = [],contents = [];
+        for (let data of signData) {
+            types.push(data.type)
+            contents.push(data.content);
+        }
+        const message = utils.signMetaDataMsg(types,contents);
         const sign = await web3.eth.accounts.sign(message,officialAccount["privateKey"]);
         return sign;
     },
