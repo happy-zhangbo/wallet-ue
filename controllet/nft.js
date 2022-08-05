@@ -4,7 +4,7 @@ const token = require("../services/token");
 const walletconnect = require("../common/walletconnect")
 const utils = require("../common/utils")
 //global
-let { connectMap, deviceMap } = require("../common/global");
+let { connectMap, deviceMap, abiMap} = require("../common/global");
 
 const api = express.Router();
 
@@ -41,9 +41,20 @@ api.post("/sign/metadata", async (req, res) => {
 
     const sign = await walletconnect.signMetaDataMsg(signData, web3).catch(err => {
         res.json(utils.toReturn(false,err));
+        return;
     });
     res.json(utils.toReturn(true,sign));
 })
+
+api.post("/getNonce", async (req, res) => {
+    const body = req.body;
+    const { web3 } = connectMap[body["device_id"]]
+    const result = await walletconnect.getOfficialNonce(web3).catch(err => {
+        res.json(utils.toReturn(false,err));
+        return;
+    });
+    res.json(utils.toReturn(true,result));
+});
 
 api.post("/saveMetadata",async (req,res) => {
     const body = req.body;
@@ -53,6 +64,7 @@ api.post("/saveMetadata",async (req,res) => {
             return err;
         });
         res.json(utils.toReturn(true, cid));
+        return;
     }else{
         res.json(utils.toReturn(false, "No Metadata"));
     }

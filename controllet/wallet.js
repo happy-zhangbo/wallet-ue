@@ -51,7 +51,7 @@ api.post('/send/transaction',async (req, res) => {
         result = await walletconnect.sendTXOfficial(tx, web3, ticketId).catch((error) => {
             // Error returned when rejected
             res.json(utils.toReturn(false,error));
-            throw error;
+            return false;
         });
         resultMap[ticketId] = {
             "tx_hash": result,
@@ -64,7 +64,7 @@ api.post('/send/transaction',async (req, res) => {
         result = await walletconnect.sendTXWallet(tx, walletConnector).catch((error) => {
             // Error returned when rejected
             res.json(utils.toReturn(false,error));
-            throw error;
+            return;
         });
         resultMap[ticketId] = {
             "tx_hash": result,
@@ -93,10 +93,10 @@ api.post('/call/method', async (req, res) => {
         outputs.push(param.type);
     })
     const result = await walletconnect.call(outputs, abiHash, body["contract_address"],web3).catch(error => {
-        res.json(utils.toReturn(false,false));
-        throw error;
+        res.json(utils.toReturn(false,error));
+        return;
     });
-    res.json(utils.toReturn(false, result));
+    res.json(utils.toReturn(true, result));
 })
 
 api.post("/sign/message",async (req,res) => {
@@ -112,7 +112,7 @@ api.post("/sign/message",async (req,res) => {
 
     const result = await walletconnect.signInfo712Msg(msgParams,walletConnector).catch(error => {
         res.json(utils.toReturn(false, error));
-        throw error;
+        return;
     });
     let sign = result.substring(2, result.length);
     let hexV = sign.substring(sign.length-2,sign.length)

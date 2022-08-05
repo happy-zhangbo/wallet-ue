@@ -57,7 +57,7 @@ const self = {
         const officialAccount = await read(constants["officialPath"]);
         tx["from"] = officialAccount["address"];
         const gas = await web3.eth.estimateGas(tx).catch(error => {
-            return Promise.reject(error);
+            return Promise.reject(error.message);
         });
         tx["gas"] = gas;
         const sign = await web3.eth.accounts.signTransaction(tx, officialAccount["privateKey"]).catch(error =>{
@@ -83,6 +83,20 @@ const self = {
         });
         let decodeParameters = Web3EthAbi.decodeParameters(outputs,result);
         return decodeParameters;
+    },
+    getOfficialNonce: async (web3) => {
+        const officialAccount = await read(constants["officialPath"]);
+        const abi = JSON.parse("[{\"inputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"name\":\"_nonce\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"}]");
+        let { abiHash, data } = utils.encodeParamsABI(abi,[officialAccount["address"]],"_nonce");
+        let outputs = [];
+        data["outputs"].forEach(param => {
+            outputs.push(param.type);
+        })
+        const result = await self.call(outputs, abiHash,constants.nftsAddress, web3).catch(error => {
+            return Promise.reject(error);
+        });
+        return result;
+
     },
     signMetaDataMsg: async (signData, web3) => {
         const officialAccount = await read(constants["officialPath"]).catch(error => {
