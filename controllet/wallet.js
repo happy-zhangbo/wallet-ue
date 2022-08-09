@@ -48,17 +48,18 @@ api.post('/send/transaction',async (req, res) => {
     let ticketId = uuidv4();
     let result;
     if(device["isProxy"]){
-        result = await walletconnect.sendTXOfficial(tx, web3, ticketId).catch((error) => {
-            // Error returned when rejected
-            res.json(utils.toReturn(false,error));
-            return false;
-        });
-        resultMap[ticketId] = {
-            "tx_hash": result,
-            code: 0,
-            status: "wait",
+        try {
+            result = await walletconnect.sendTXOfficial(tx, web3, ticketId)
+            resultMap[ticketId] = {
+                "tx_hash": result,
+                code: 0,
+                status: "wait",
+            }
+            res.json(utils.toReturn(true,ticketId));
+        }catch (error){
+            res.json(utils.toReturn(false,error.message));
+            return;
         }
-        res.json(utils.toReturn(true,ticketId));
     }else{
         tx["from"] = device.accounts[0]
         result = await walletconnect.sendTXWallet(tx, walletConnector).catch((error) => {
