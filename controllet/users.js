@@ -48,6 +48,7 @@ api.post("/login",async (req, res) => {
             }
             break;
         default:
+            res.json(utils.toReturn(false,"No Method"));
             break;
     }
 });

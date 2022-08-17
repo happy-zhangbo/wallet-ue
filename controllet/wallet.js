@@ -33,9 +33,17 @@ api.post('/send/transaction',async (req, res) => {
     const device = deviceMap[deviceID];
     const { walletConnector, web3 } = connectMap[deviceID];
     const abi = abiMap[body["abi_hash"]];
-
-    let { abiHash } = utils.encodeParamsABI(abi,JSON.parse(body["args"]),body["method"])
-
+    if(!abi){
+        res.json(utils.toReturn(false, "No ABI"));
+        return;
+    }
+    let abiHash = {}
+    try {
+        abiHash = utils.encodeParamsABI(abi,JSON.parse(body["args"]),body["method"])
+    }catch (error){
+        res.json(utils.toReturn(false, error.message));
+        return;
+    }
     // Draft transaction
     let tx = {
         to: body["contract_address"], // Required (for non contract deployments)
@@ -61,19 +69,21 @@ api.post('/send/transaction',async (req, res) => {
             return;
         }
     }else{
-        tx["from"] = device.accounts[0]
-        result = await walletconnect.sendTXWallet(tx, walletConnector).catch((error) => {
-            // Error returned when rejected
-            res.json(utils.toReturn(false,error));
+        try {
+            tx["from"] = device.accounts[0]
+            result = await walletconnect.sendTXWallet(tx, walletConnector)
+            resultMap[ticketId] = {
+                "tx_hash": result,
+                code: 0,
+                status: "wait",
+            }
+            res.json(utils.toReturn(true,ticketId));
+            utils.pollingTxResult(result, ticketId, web3, 0);
+        }catch (error){
+            res.json(utils.toReturn(false,error.message));
             return;
-        });
-        resultMap[ticketId] = {
-            "tx_hash": result,
-            code: 0,
-            status: "wait",
         }
-        res.json(utils.toReturn(true,ticketId));
-        utils.pollingTxResult(result, ticketId, web3, 0);
+
     }
 })
 
@@ -87,8 +97,21 @@ api.post('/call/method', async (req, res) => {
     const body = req.body;
     const { web3 } = connectMap[body["device_id"]]
     const abi = abiMap[body["abi_hash"]];
-    let { abiHash, data} = utils.encodeParamsABI(abi,JSON.parse(body["args"]),body["method"])
+    if(!abi){
+        res.json(utils.toReturn(false, "No ABI"));
+        return;
+    }
 
+    // let { abiHash, data } = utils.encodeParamsABI(abi,JSON.parse(body["args"]),body["method"])
+    let abiHash, data = {}
+    try {
+        let ad = utils.encodeParamsABI(abi,JSON.parse(body["args"]),body["method"])
+        abiHash = ad.abiHash;
+        data = ad.data;
+    }catch (error){
+        res.json(utils.toReturn(false, error.message));
+        return;
+    }
     let outputs = [];
     data["outputs"].forEach(param => {
         outputs.push(param.type);

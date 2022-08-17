@@ -6,6 +6,7 @@ const { connectMap, abiMap, resultMap} = require("./global");
 const { read } = require("./vault");
 const constants = require("./constant");
 const Web3EthAbi = require("web3-eth-abi");
+const {error} = require("winston");
 
 const self = {
     connect: async (deviceId,callback)=> {
@@ -49,7 +50,7 @@ const self = {
     sendTXWallet: async (tx, walletConnector) => {
         const result = await walletConnector.sendTransaction(tx).catch((error) => {
             // Error returned when rejected
-            return Promise.reject(error);
+            throw new Error(error);
         });
         return result;
     },
@@ -57,11 +58,11 @@ const self = {
         const officialAccount = await read(constants["officialPath"]);
         tx["from"] = officialAccount["address"];
         const gas = await web3.eth.estimateGas(tx).catch(error => {
-            return Promise.reject(error.message);
+            throw new Error(error);
         });
         tx["gas"] = gas;
         const sign = await web3.eth.accounts.signTransaction(tx, officialAccount["privateKey"]).catch(error =>{
-            return Promise.reject(error);
+            throw new Error(error);
         })
         console.log(sign);
         web3.eth.sendSignedTransaction(sign.rawTransaction).then(result => {
@@ -79,7 +80,7 @@ const self = {
             to: contractAddress,
             data: abi_hash
         }).catch(error => {
-            return Promise.reject(error);
+            throw new Error(error);
         });
         let decodeParameters = Web3EthAbi.decodeParameters(outputs,result);
         return decodeParameters;
@@ -100,7 +101,7 @@ const self = {
     },
     signMetaDataMsg: async (signData, web3) => {
         const officialAccount = await read(constants["officialPath"]).catch(error => {
-            return Promise.reject(error);
+            throw new Error(error);
         });
         let types = [],contents = [];
         for (let data of signData) {
@@ -117,7 +118,7 @@ const self = {
             .signTypedData(msgParams)
             .catch((error) => {
                 // Error returned when rejected
-                return Promise.reject(error);
+                throw new Error(error);
             });
        return result;
     }

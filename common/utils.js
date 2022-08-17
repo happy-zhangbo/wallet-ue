@@ -73,7 +73,7 @@ const self = {
         }catch (e){
             if(e.message != "End") throw e;
         }
-        if(!data){
+        if(self.checkNullObj(data)){
             throw new Error("No Method");
         }
         let inputs = [];
@@ -146,7 +146,9 @@ const self = {
     },
     hexToNUmber(hex){
         return Web3Utils.hexToNumber(hex);
+    },
+    checkNullObj (obj) {
+        return Object.keys(obj).length === 0
     }
-
 }
 module.exports = self;
