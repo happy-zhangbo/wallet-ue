@@ -47,7 +47,7 @@ api.post('/send/transaction',async (req, res) => {
     // Draft transaction
     let tx = {
         to: body["contract_address"], // Required (for non contract deployments)
-        data: abiHash, // Required
+        data: abiHash.abiHash, // Required
         // gasPrice: "0x02540be400", // Optional
         // gas: "0x9c40", // Optional
         // value: "0x00", // Optional

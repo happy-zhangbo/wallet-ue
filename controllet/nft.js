@@ -53,6 +53,7 @@ api.post("/getNonce", async (req, res) => {
         res.json(utils.toReturn(false,err));
         return;
     });
+
     res.json(utils.toReturn(true,result));
 });
 

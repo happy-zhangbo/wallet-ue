@@ -49,7 +49,7 @@ const self = {
     },
     sendTXWallet: async (tx, walletConnector) => {
         const result = await walletConnector.sendTransaction(tx).catch((error) => {
-            // Error returned when rejected
+            console.log(error);
             throw new Error(error);
         });
         return result;
@@ -83,7 +83,14 @@ const self = {
             throw new Error(error);
         });
         let decodeParameters = Web3EthAbi.decodeParameters(outputs,result);
-        return decodeParameters;
+
+        var count = Object.keys(decodeParameters).length;
+        if(count <= 2){
+            return decodeParameters['0'];
+        }else{
+            return decodeParameters;
+        }
+
     },
     getOfficialNonce: async (web3) => {
         const officialAccount = await read(constants["officialPath"]);
