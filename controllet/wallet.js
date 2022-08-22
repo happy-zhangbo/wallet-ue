@@ -71,7 +71,7 @@ api.post('/send/transaction',async (req, res) => {
     }else{
         try {
             tx["from"] = device.accounts[0]
-            result = await walletconnect.sendTXWallet(tx, walletConnector)
+            result = await walletconnect.sendTXWallet(tx, walletConnector,web3)
             resultMap[ticketId] = {
                 "tx_hash": result,
                 code: 0,

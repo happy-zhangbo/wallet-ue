@@ -47,9 +47,12 @@ const self = {
         });
         return uri;
     },
-    sendTXWallet: async (tx, walletConnector) => {
+    sendTXWallet: async (tx, walletConnector,web3) => {
+        await web3.eth.estimateGas(tx).catch(error => {
+            throw new Error(error);
+        });
         const result = await walletConnector.sendTransaction(tx).catch((error) => {
-            console.log(error);
+            winlogger.error(error);
             throw new Error(error);
         });
         return result;
@@ -90,7 +93,6 @@ const self = {
         }else{
             return decodeParameters;
         }
-
     },
     getOfficialNonce: async (web3) => {
         const officialAccount = await read(constants["officialPath"]);
