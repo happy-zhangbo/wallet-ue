@@ -30,7 +30,7 @@ api.post("/login",async (req, res) => {
             res.json(utils.toReturn(true,qr))
             break;
         case "email":
-            if(utils.getChainURI(1008,null, deviceId)){
+            if(utils.getChainURI(5,null, deviceId)){
                 if(!body["key"]){
                     res.json(utils.toReturn(false,"NO KEY"))
                     return;
