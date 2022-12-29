@@ -14,8 +14,8 @@ const self = {
             case 1:
                 endpoint = "https://mainnet.infura.io/v3/a2122abfa9b544dca3df8d951f84029b";
                 break;
-            case 4:
-                endpoint = "https://rinkeby.infura.io/v3/a2122abfa9b544dca3df8d951f84029b";
+            case 5:
+                endpoint = "https://goerli.infura.io/v3/a2122abfa9b544dca3df8d951f84029b";
                 break;
             case 1313161554:
                 endpoint = "https://mainnet.aurora.dev";

@@ -14,7 +14,7 @@ api.post("/getTokenByAddress",async (req, res) => {
     let tokens = [];
     if(device["accounts"] && device.accounts.length > 0){
         const account = utils.toChecksumAddress(device.accounts[0])
-        const result = await token.findTokenByAddress(account);
+        const result = await token.findTokenByAddressToMysql(account);
         result.forEach(item => {
             tokens.push(item);
         })
@@ -22,7 +22,7 @@ api.post("/getTokenByAddress",async (req, res) => {
     let tokenProxy = [];
     if(device["proxyAccount"]){
         const account = utils.toChecksumAddress(device.proxyAccount)
-        const result = await token.findTokenByAddress(account);
+        const result = await token.findTokenByAddressToMysql(account);
         result.forEach(item => {
             tokenProxy.push(item);
         })
